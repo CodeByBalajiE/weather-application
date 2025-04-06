@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #72c6ef, #004e92);
+            min-height: 100vh;
+            color: white;
+        }
+        .weather-container {
+            max-width: 350px;
+            margin: 20px auto;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        input {
+            padding: 12px;
+            width: 80%;
+            margin: 10px 0;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        button {
+            padding: 12px 25px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+        #weather-result {
+            margin-top: 25px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            text-align: left;
+        }
+        .weather-icon {
+            width: 70px;
+            height: 70px;
+            margin: -10px 0;
+        }
+        .temp {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .error {
+            color: #ffcccb;
+            font-weight: bold;
+        }
+        .hidden {
+            display: none;
+        }
+        .loading {
+            margin: 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="weather-container">
+        <h1>🌤️ Weather App</h1>
+        <input type="text" id="city-input" placeholder="Enter city name">
+        <button onclick="getWeather()">Get Weather</button>
+        
+        <div id="loading" class="loading hidden">Loading weather data...</div>
+        
+        <div id="weather-result" class="hidden">
+            <h2 id="location"></h2>
+            <div style="display: flex; align-items: center; justify-content: center;">
+                <img id="weather-icon" class="weather-icon">
+                <div class="temp" id="temperature"></div>
+            </div>
+            <div id="condition"></div>
+            <p>Feels like: <span id="feels-like"></span></p>
+            <p>Humidity: <span id="humidity"></span>%</p>
+            <p>Wind: <span id="wind"></span> km/h</p>
+        </div>
+        
+        <div id="error" class="error hidden"></div>
+    </div>
+
+    <script>
+        const API_KEY = "47c218cd363c469e91e65930250604";
+        
+        function getWeather() {
+            const city = document.getElementById('city-input').value.trim();
+            if (!city) {
+                showError("Please enter a city name");
+                return;
+            }
+            
+            // Show loading, hide others
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('weather-result').classList.add('hidden');
+            document.getElementById('error').classList.add('hidden');
+            
+            const url = `https://api.weatherapi.com/v1/current.json?key=${API_KEY}&q=${city}&aqi=no`;
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('City not found');
+                    return response.json();
+                })
+                .then(data => {
+                    displayWeather(data);
+                })
+                .catch(error => {
+                    showError(error.message);
+                })
+                .finally(() => {
+                    document.getElementById('loading').classList.add('hidden');
+                });
+        }
+        
+        function displayWeather(data) {
+            const weather = data.current;
+            const location = data.location;
+            
+            document.getElementById('location').textContent = 
+                `${location.name}, ${location.country}`;
+            document.getElementById('temperature').textContent = 
+                `${weather.temp_c}°C`;
+            document.getElementById('weather-icon').src = 
+                `https:${weather.condition.icon}`;
+            document.getElementById('condition').textContent = 
+                weather.condition.text;
+            document.getElementById('feels-like').textContent = 
+                `${weather.feelslike_c}°C`;
+            document.getElementById('humidity').textContent = 
+                weather.humidity;
+            document.getElementById('wind').textContent = 
+                weather.wind_kph;
+            
+            document.getElementById('weather-result').classList.remove('hidden');
+        }
+        
+        function showError(message) {
+            document.getElementById('error').textContent = message;
+            document.getElementById('error').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
